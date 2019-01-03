@@ -26,6 +26,10 @@ class Tools {
    * A helper method to calculate Jacobians.
    */
   Eigen::MatrixXd CalculateJacobian(const Eigen::VectorXd& x_state);
+  
+  Eigen::VectorXd Calculate_X_Prime(const Eigen::VectorXd& z);
+  
+  float Normalize_phi(float phi);
 
 };
 
