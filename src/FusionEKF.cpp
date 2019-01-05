@@ -43,12 +43,13 @@ FusionEKF::FusionEKF() {
          1, 1, 0, 0,
          1, 1, 1, 1;
   
-  //transition matrix
+  //state transition matrix
   ekf_.F_ = MatrixXd(4, 4);
   ekf_.F_ << 1, 0, 1, 0,
              0, 1, 0, 1,
              0, 0, 1, 0,
              0, 0, 0, 1;
+  // **** Should I set the velocity indices (0, 2) and (1, 3) to zero for initialization?
   
   //state covariance matrix
   ekf_.P_ = MatrixXd(4, 4);
@@ -77,6 +78,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // first measurement
     cout << "EKF: " << endl;
     ekf_.x_ = VectorXd(4);
+    
+    // **** Tune these values (index 2 and 3) below to improve RMSE from the beginning
     ekf_.x_ << 1, 1, 1, 1;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
@@ -92,20 +95,37 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float vx = r_dot * cos(theta);
       float vy = r_dot * sin(theta);
       
+      ekf_.x_(0) = px;
+      ekf_.x_(1) = py;
+      ekf_.x_(2) = vx;
+      ekf_.x_(3) = vy;
+      
+      cout << "VX: " << vx << endl;
+      cout << "VY: " << vy << endl;
+      
+      /*
       ekf_.x_ << px,
       			 py,
       			 vx,
       			 vy;
+      */
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       // TODO: Initialize state.
       std::cout << "Initializing laser state..." << std::endl;
-	  ekf_.x_ << measurement_pack.raw_measurements_[0],
+	  
+      ekf_.x_(0) = measurement_pack.raw_measurements_(0);
+      ekf_.x_(1) = measurement_pack.raw_measurements_(1);
+      /*
+      ekf_.x_ << measurement_pack.raw_measurements_[0],
       			 measurement_pack.raw_measurements_[1],
       			 0,
       			 0;      
+      */
     }
 
+    // *** Should I initialize ekf_.F_ here? 4x4 with 1 on the diagonal (identity)?
+    
     previous_timestamp_ = measurement_pack.timestamp_;
     
     // done initializing, no need to predict or update
@@ -129,7 +149,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   std::cout << "Predicting..." << std::endl;
   
   // **** Should this be a float?
-  float noise_ax, noise_ay = 9.0;
+  float noise_ax = 9.0;
+  float noise_ay = 9.0;
 
   // Compute the elapsed time between subsequent measurements
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;

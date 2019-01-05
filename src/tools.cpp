@@ -31,7 +31,8 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   }
   
   // Calculate the mean of the residuals
-  rmse = rmse.array() / estimations.size();
+  //rmse = rmse.array() / estimations.size();
+  rmse = rmse / estimations.size();
   
   // Calculate the square root of the mse value
   rmse = rmse.array().sqrt();
@@ -56,9 +57,11 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   float denom = pow(px, 2) + pow(py, 2);
   
   // Check to verify there is no division by zero
-  if(denom < 0.0001){
+  if(fabs(denom) < 0.0001){
     std::cout << "CalculateJacobian () - Error - Cannot divide by zero!" << std::endl;
-  } else {
+    return Hj;
+  }
+  
   float px_h1 = px / sqrt(denom);
   float py_h1 = px / sqrt(denom);
   float px_h2 = -1.0 * py / denom;
@@ -70,7 +73,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   Hj << px_h1, py_h1,     0,     0,
         px_h2, py_h2,     0,     0,
         px_h3, py_h3, px_h1, py_h1;
-  }
+  
   std::cout << "Leaving CalculateJacobian()..." << std::endl;
   return Hj;
 }
