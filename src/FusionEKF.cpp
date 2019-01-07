@@ -130,8 +130,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     
     // done initializing, no need to predict or update
     is_initialized_ = true;
-    
-    std::cout << "Initialization complete" << std::endl;
+
     return;
   }
 
@@ -146,9 +145,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
   
-  std::cout << "Predicting..." << std::endl;
-  
-  // **** Should this be a float?
   float noise_ax = 9.0;
   float noise_ay = 9.0;
 
@@ -177,9 +173,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
              t3_ax,     0, t2_ax,     0,
                  0, t3_ay,     0, t2_ay;
   
-  std::cout << "Calling Predict()..." << std::endl;
   ekf_.Predict();
-  std::cout << "Finished predicting" << std::endl;
 
   /**
    * Update
@@ -197,19 +191,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     Hj_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.H_ = Hj_;
     ekf_.R_ = R_radar_;    
-    std::cout << "Radar update" << std::endl;
 	ekf_.UpdateEKF(measurement_pack.raw_measurements_);
   } else {
     // TODO: Laser updates    
     ekf_.H_ = H_laser_;
     ekf_.R_ = R_laser_;
-    std::cout << "Laser update" << std::endl;
     ekf_.Update(measurement_pack.raw_measurements_);    
   }
-  
-  std::cout << "Update complete" << std::endl;
 
   // print the output
+  cout << endl;
   cout << "x_ = " << ekf_.x_ << endl;
   cout << "P_ = " << ekf_.P_ << endl;
+  cout << endl << "**************************************************************" << endl << endl;
 }

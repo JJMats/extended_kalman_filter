@@ -33,14 +33,16 @@ void KalmanFilter::Predict() {
   x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
-  std::cout << "Leaving Predict()..." << std::endl;
+  std::cout << "Predictions:" << std::endl;
+  std::cout << "x'_: " << x_ << std::endl;
+  std::cout << "P'_: " << P_ << std::endl;
+  std::cout << std::endl << "Leaving Predict()..." << std::endl;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
   /**
    * TODO: update the state by using Kalman Filter equations
    */
-  std::cout << "In Update()" << std::endl;
   
   VectorXd z_pred = H_ * x_;
   VectorXd y = z - z_pred;
@@ -56,7 +58,6 @@ void KalmanFilter::Update(const VectorXd &z) {
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
   
-  std::cout << "Leaving Update()" << std::endl;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -64,7 +65,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
    * TODO: update the state by using Extended Kalman Filter equations
    */
   
-  std::cout << "In UpdateEKF()..." << std::endl;
   Tools tools;
   float px  = x_(0);
   float py  = x_(1);
@@ -73,13 +73,29 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   
   float rho = sqrt(px*px + py*py);
   float theta = atan2(py, px);
+  
   float rho_dot = 0;
-  if (fabs(rho) >= 0.0001) {
+  if (rho >= 0.0001) {
+    // ***** Should this be the square root of px*vx + py*vy
     rho_dot = (px*vx + py*vy) / rho;
   }
   VectorXd z_pred = VectorXd(3);
   z_pred << rho, theta, rho_dot;
+  std::cout << "z_pred: " << z_pred << std::endl;
+  
   VectorXd y = z - z_pred;
+  std::cout << "y: " << y << std::endl;
+  while ( y(1) > M_PI || y(1) < -M_PI ) {
+    std::cout << "Normalizing y(1)..." << std::endl;
+    std::cout << "y(1): " << y(1) << std::endl;
+    if ( y(1) > M_PI ) {
+      y(1) -= M_PI;
+    } else {
+      y(1) += M_PI;
+    }
+  }
+  
+  std::cout << "y(1) Normalized: " << y(1) << std::endl;
   
   //Matrix Hj = Tools::CalculateJacobian(x_);
   
@@ -111,5 +127,4 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);
   P_ = (I - K * H_) * P_;
-  std::cout << "Leaving UpdateEKF()..." << std::endl;
 }

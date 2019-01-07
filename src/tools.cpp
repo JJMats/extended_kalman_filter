@@ -15,9 +15,12 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   /**
    * TODO: Calculate the RMSE here.
    */
-  std::cout << "In CalculateRMSE()..." << std::endl;
   VectorXd rmse(4);
   rmse << 0, 0, 0, 0;
+  
+  //std::cout << "Estimations: " << std::endl;
+  //std::cout << estimations << std::endl;
+  //std::cout << "Ground Truth: " << std::endl << ground_truth << std::endl;
   
   if(estimations.size() == 0 || estimations.size() != ground_truth.size()){
   	return rmse;
@@ -36,7 +39,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   
   // Calculate the square root of the mse value
   rmse = rmse.array().sqrt();
-  std::cout << "Leaving CalculateRMSE()..." << std::endl;
+  std::cout << "RMSE: " << rmse << std::endl;
   return rmse;  
 }
 
@@ -45,7 +48,6 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
    * TODO:
    * Calculate a Jacobian here.
    */
-  std::cout << "In CalculateJacobian()..." << std::endl;
   MatrixXd Hj(3, 4);
   
   // Break state vector into its individual components
@@ -57,7 +59,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   float denom = pow(px, 2) + pow(py, 2);
   
   // Check to verify there is no division by zero
-  if(fabs(denom) < 0.0001){
+  if(denom < 0.0001){
     std::cout << "CalculateJacobian () - Error - Cannot divide by zero!" << std::endl;
     return Hj;
   }
@@ -74,7 +76,6 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
         px_h2, py_h2,     0,     0,
         px_h3, py_h3, px_h1, py_h1;
   
-  std::cout << "Leaving CalculateJacobian()..." << std::endl;
   return Hj;
 }
 
@@ -99,6 +100,7 @@ VectorXd Tools::Calculate_X_Prime(const VectorXd& x){
 
 float Tools::Normalize_phi(float phi){
   std::cout << "In Normalize_phi()..." << std::endl;
+  std::cout << "Phi: " << phi << std::endl;
   
   float phi_norm = phi;
   while(abs(phi_norm) > M_PI){
