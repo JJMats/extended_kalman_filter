@@ -34,7 +34,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   
   // Calculate the square root of the mse value
   rmse = rmse.array().sqrt();
-  std::cout << "RMSE: " << rmse << std::endl;
+
   return rmse;  
 }
 
@@ -59,7 +59,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   }
   
   float px_h1 = px / sqrt(denom);
-  float py_h1 = px / sqrt(denom);
+  float py_h1 = py / sqrt(denom);
   float px_h2 = -1.0 * py / denom;
   float py_h2 = px / denom;
   float px_h3 = (py * ((vx*py) - (vy*px))) / pow(denom, 1.5);
