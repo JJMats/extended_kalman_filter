@@ -18,10 +18,6 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   VectorXd rmse(4);
   rmse << 0, 0, 0, 0;
   
-  //std::cout << "Estimations: " << std::endl;
-  //std::cout << estimations << std::endl;
-  //std::cout << "Ground Truth: " << std::endl << ground_truth << std::endl;
-  
   if(estimations.size() == 0 || estimations.size() != ground_truth.size()){
   	return rmse;
   }
@@ -34,7 +30,6 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   }
   
   // Calculate the mean of the residuals
-  //rmse = rmse.array() / estimations.size();
   rmse = rmse / estimations.size();
   
   // Calculate the square root of the mse value
@@ -57,7 +52,6 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   float vy = x_state(3);
   
   float denom = pow(px, 2) + pow(py, 2);
-  
   // Check to verify there is no division by zero
   if(denom < 0.0001){
     std::cout << "CalculateJacobian () - Error - Cannot divide by zero!" << std::endl;
@@ -79,31 +73,12 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   return Hj;
 }
 
-VectorXd Tools::Calculate_X_Prime(const VectorXd& x){
-  std::cout << "In Calculate_X_Prime()..." << std::endl;
-  
-  VectorXd h_x(3);
-  float rho = sqrt((x[0] * x[0]) + (x[1] * x[1]));
-  float phi = atan2(x[1], x[0]);
-  //float phi = Normalize_phi(atan2(x[1], x[0]));
-  std::cout << "Back from Normalize_phi()" << std::endl;
-  float rho_dot = 0.0;
-  std::cout << "x: " << x << std::endl;
-  if(fabs(rho) > 0.0001){    
-  	rho_dot = ((x[0]*x[2]) + (x[1]*x[3])) / rho;
-  }
-  std::cout << "rho_dot: " << rho_dot << std::endl;
-  h_x << rho, phi, rho_dot;
-  std::cout << "Leaving Calculate_X_Prime()..." << std::endl;
-  return h_x;
-}
-
 float Tools::Normalize_phi(float phi){ 
-  while ( phi > M_PI || phi < -M_PI ) {
-    if ( phi > M_PI ) {
-      phi -= M_PI;
+  while (fabs(phi) > M_PI) {
+    if (phi > M_PI){
+      phi -= 2.0*M_PI;
     } else {
-      phi += M_PI;
+      phi += 2.0*M_PI;
     }
   } 
 
