@@ -29,14 +29,9 @@ void KalmanFilter::Predict() {
   /**
    * TODO: predict the state
    */
-  std::cout << "In Predict()..." << std::endl;
   x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
-  std::cout << "Predictions:" << std::endl;
-  std::cout << "x'_: " << x_ << std::endl;
-  std::cout << "P'_: " << P_ << std::endl;
-  std::cout << std::endl << "Leaving Predict()..." << std::endl;
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -46,83 +41,45 @@ void KalmanFilter::Update(const VectorXd &z) {
   
   VectorXd z_pred = H_ * x_;
   VectorXd y = z - z_pred;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
-  
-  // New Estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
-  
+  MatrixXd K = CalculateK(y);
+  MakeEstimate(y, K);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   /**
    * TODO: update the state by using Extended Kalman Filter equations
    */
-  
   Tools tools;
-  float px  = x_(0);
-  float py  = x_(1);
+  float px = x_(0);
+  float py = x_(1);
   float vx = x_(2);
-  float vy = x_(3);
-  
+  float vy = x_(3);  
   float rho = sqrt(px*px + py*py);
-  float theta = atan2(py, px);
-  
+  float phi = atan2(py, px);  
   float rho_dot = 0;
   if (rho >= 0.0001) {
-    // ***** Should this be the square root of px*vx + py*vy
     rho_dot = (px*vx + py*vy) / rho;
   }
   VectorXd z_pred = VectorXd(3);
-  z_pred << rho, theta, rho_dot;
-  std::cout << "z_pred: " << z_pred << std::endl;
-  
+  z_pred << rho, phi, rho_dot;  
   VectorXd y = z - z_pred;
-  std::cout << "y: " << y << std::endl;
-  while ( y(1) > M_PI || y(1) < -M_PI ) {
-    std::cout << "Normalizing y(1)..." << std::endl;
-    std::cout << "y(1): " << y(1) << std::endl;
-    if ( y(1) > M_PI ) {
-      y(1) -= M_PI;
-    } else {
-      y(1) += M_PI;
-    }
-  }
   
-  std::cout << "y(1) Normalized: " << y(1) << std::endl;
-  
-  //Matrix Hj = Tools::CalculateJacobian(x_);
-  
-  MatrixXd Hjt = H_.transpose();
-  //float rho = sqrt((x_[0]*x_[0] + x_[1]*x_[1]));
-  //float phi = atan2(x_[1], x_[0]);
-  //float rho_dot = 0.0;
-  //if (fabs(rho) >= 0.0001){
-  //	rho_dot = (x_[0]*x_[2] + x_[1]*x_[3])/rho;
-  //}
-  
-  //VectorXd h_x_Prime = tools.Calculate_X_Prime(x_); 
-  //VectorXd h_x_Prime(3);
-  //h_x_Prime << rho, phi, rho_dot;
-  //std::cout << "h_x_prime: " << h_x_Prime << std::endl;
-  //VectorXd z_pred = Hj * x_; // Does this need to be x'?
-  
-  // *** View Lesson 25: Extended Kalman Filters: EKF Algorithm Generalization
-  // I need the h function y = z - h(x'), using Hj instead of H
-  // x' should be x' = f(x, u), and use Fj instead of F
-  //    u can be set to zero (mean state variable)
-  //VectorXd y = z - h_x_Prime;  // This should use the h function directly, not y = z - Hx'
-  MatrixXd S = H_ * P_ * Hjt + R_;
+  y(1) = tools.Normalize_phi(y(1));
+  MatrixXd K = CalculateK(y);
+  MakeEstimate(y, K);
+}
+
+MatrixXd KalmanFilter::CalculateK(const VectorXd &y){
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
-  MatrixXd PHjt = P_ * Hjt;
-  MatrixXd K = PHjt * Si;
+  MatrixXd K = P_ * Ht * Si;
   
+  return K;
+}
+
+void KalmanFilter::MakeEstimate(const VectorXd &y, const MatrixXd &K){
+  // New Estimate
   x_ = x_ + (K * y);
   long x_size = x_.size();
   MatrixXd I = MatrixXd::Identity(x_size, x_size);

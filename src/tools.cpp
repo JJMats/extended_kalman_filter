@@ -98,16 +98,14 @@ VectorXd Tools::Calculate_X_Prime(const VectorXd& x){
   return h_x;
 }
 
-float Tools::Normalize_phi(float phi){
-  std::cout << "In Normalize_phi()..." << std::endl;
-  std::cout << "Phi: " << phi << std::endl;
-  
-  float phi_norm = phi;
-  while(abs(phi_norm) > M_PI){
-  	phi_norm /= M_PI;
-  }
-  
-  std::cout << "Leaving Normalize_phi()..." << std::endl;
-  std::cout << "Phi_norm: " << phi_norm << std::endl;
-  return phi_norm;
+float Tools::Normalize_phi(float phi){ 
+  while ( phi > M_PI || phi < -M_PI ) {
+    if ( phi > M_PI ) {
+      phi -= M_PI;
+    } else {
+      phi += M_PI;
+    }
+  } 
+
+  return phi;
 }
