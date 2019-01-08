@@ -30,6 +30,7 @@ void KalmanFilter::Predict() {
    * TODO: predict the state
    */
   std::cout << "In Predict()..." << std::endl;
+  std::cout << "F_: " << F_ << std::endl;
   x_ = F_ * x_;
   MatrixXd Ft = F_.transpose();
   P_ = F_ * P_ * Ft + Q_;
@@ -66,23 +67,24 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
    */
   
   Tools tools;
-  float px  = x_(0);
-  float py  = x_(1);
+  float px = x_(0);
+  float py = x_(1);
   float vx = x_(2);
   float vy = x_(3);
   
   float rho = sqrt(px*px + py*py);
   float theta = atan2(py, px);
   
-  float rho_dot = 0;
+  float rho_dot = 0.0;
   if (rho >= 0.0001) {
-    // ***** Should this be the square root of px*vx + py*vy
     rho_dot = (px*vx + py*vy) / rho;
+  } else {
+    std::cout << "rho_dot set to 0.0" << std::endl;
   }
   VectorXd z_pred = VectorXd(3);
   z_pred << rho, theta, rho_dot;
   std::cout << "z_pred: " << z_pred << std::endl;
-  
+
   VectorXd y = z - z_pred;
   std::cout << "y: " << y << std::endl;
   while ( y(1) > M_PI || y(1) < -M_PI ) {

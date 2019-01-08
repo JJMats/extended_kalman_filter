@@ -39,9 +39,11 @@ FusionEKF::FusionEKF() {
   H_laser_ << 1, 0, 0, 0,
               0, 1, 0, 0;
   
+  /*
   Hj_ << 1, 1, 0, 0,
          1, 1, 0, 0,
          1, 1, 1, 1;
+  */
   
   //state transition matrix
   ekf_.F_ = MatrixXd(4, 4);
@@ -114,16 +116,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // TODO: Initialize state.
       std::cout << "Initializing laser state..." << std::endl;
 	  
-      ekf_.x_(0) = measurement_pack.raw_measurements_(0);
-      ekf_.x_(1) = measurement_pack.raw_measurements_(1);
-      /*
+      //ekf_.x_(0) = measurement_pack.raw_measurements_(0);
+      //ekf_.x_(1) = measurement_pack.raw_measurements_(1);
+      
       ekf_.x_ << measurement_pack.raw_measurements_[0],
       			 measurement_pack.raw_measurements_[1],
       			 0,
       			 0;      
-      */
+      
     }
-
+    
     // *** Should I initialize ekf_.F_ here? 4x4 with 1 on the diagonal (identity)?
     
     previous_timestamp_ = measurement_pack.timestamp_;
@@ -134,6 +136,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     return;
   }
 
+  //if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+  //  return;
+  //}
+  
+  
   /**
    * Prediction
    */
@@ -151,7 +158,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   // Compute the elapsed time between subsequent measurements
   float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   previous_timestamp_ = measurement_pack.timestamp_;
-  
+  std::cout << "dt: " << dt << std::endl;
   // Update the state transition matrix F to reflect the new elapsed time
   ekf_.F_(0,2) = dt;
   ekf_.F_(1,3) = dt; 
@@ -188,8 +195,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
     Tools tools;
-    Hj_ = tools.CalculateJacobian(ekf_.x_);
-    ekf_.H_ = Hj_;
+    //Hj_ = tools.CalculateJacobian(ekf_.x_);
+    //ekf_.H_ = Hj_;
+    ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
     ekf_.R_ = R_radar_;    
 	ekf_.UpdateEKF(measurement_pack.raw_measurements_);
   } else {
@@ -203,5 +211,5 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   cout << endl;
   cout << "x_ = " << ekf_.x_ << endl;
   cout << "P_ = " << ekf_.P_ << endl;
-  cout << endl << "**************************************************************" << endl << endl;
+  
 }
